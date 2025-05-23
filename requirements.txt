@@ -1,0 +1,5 @@
+pymssql
+flask
+
+# Run this line to install libraries: python -m pip install -r requirements.txt
+
