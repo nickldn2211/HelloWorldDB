@@ -1,4 +1,3 @@
-
 # 🚀 HelloWorld AKS + MySQL Deployment
 
 This project demonstrates how to deploy a simple HelloWorld application on **Azure Kubernetes Service (AKS)** using a lightweight virtual machine size and a **Flexible MySQL Server**. It includes database setup, secret management, and Helm deployment.
@@ -8,6 +7,7 @@ This project demonstrates how to deploy a simple HelloWorld application on **Azu
 ## ✅ Prerequisites
 
 - Azure CLI
+- Docker
 - kubectl
 - Helm
 - MySQL client
@@ -17,7 +17,7 @@ This project demonstrates how to deploy a simple HelloWorld application on **Azu
 
 ## 🔧 1. Create AKS Cluster
 
-Use the smallest supported VM SKU for AKS system node pools: `Standard_B2s` (2 vCPUs, 4GB RAM).
+Use the smallest supported VM SKU for AKS system node pools: `Standard_B2s`.
 
 ```bash
 az aks create \
@@ -28,11 +28,10 @@ az aks create \
   --generate-ssh-keys
 ```
 
-Get cluster credentials:
+Get credentials:
 
 ```bash
 az aks get-credentials --resource-group HelloWorld --name HelloWorld
-kubectl config current-context
 kubectl get nodes
 ```
 
@@ -54,13 +53,13 @@ az mysql flexible-server create \
   --public-access 0.0.0.0
 ```
 
-Connect to the server:
+Connect to it:
 
 ```bash
 mysql -h helloworddev123.mysql.database.azure.com -u helloworld -p
 ```
 
-Then run the following SQL:
+Run SQL:
 
 ```sql
 CREATE DATABASE helloword;
@@ -81,11 +80,9 @@ SELECT * FROM Users;
 
 ---
 
-## 🔐 3. Create Kubernetes Secret for DB
+## 🔐 3. Create Kubernetes Secrets
 
-
-
-Optional: Base64-encode values (for Helm chart values):
+Optionally base64 encode values for Helm:
 
 ```bash
 echo -n 'helloworddev123.mysql.database.azure.com' | base64
@@ -98,8 +95,6 @@ echo -n 'dDWioih2d54wqwq3' | base64
 
 ## 📦 4. Deploy with Helm
 
-Install the chart:
-
 ```bash
 helm install helloworld ./helloworld-chart
 ```
@@ -107,9 +102,8 @@ helm install helloworld ./helloworld-chart
 Check resources:
 
 ```bash
-helm list -n helloworld
-kubectl get pods -n helloworld
-kubectl get svc -n helloworld
+kubectl get pods
+kubectl get svc
 ```
 
 Example output:
@@ -122,27 +116,21 @@ helloworld-service   LoadBalancer   <CLUSTER-IP>   <EXTERNAL-IP>   80:PORT/TCP  
 
 ## 🌐 5. Test the App
 
-Replace `<EXTERNAL-IP>` with the value from the previous step.
-
-**Health Check:**
+Replace `<EXTERNAL-IP>`:
 
 ```bash
 curl http://<EXTERNAL-IP>/health
 ```
 
-Expected response:
-
 ```json
 {"status": "healthy"}
 ```
-
-**Users Endpoint:**
 
 ```bash
 curl http://<EXTERNAL-IP>/users
 ```
 
-Expected response:
+Expected output:
 
 ```json
 [
@@ -153,18 +141,46 @@ Expected response:
 
 ---
 
-## 🧹 6. Cleanup
+## 🧪 6. Run the App Locally (Optional)
 
-Check logs (optional):
+### Option A: Python Virtual Environment
 
 ```bash
-kubectl logs -n helloworld deploy/helloworld-deployment
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python app.py
 ```
 
-Uninstall everything:
+Visit [http://localhost:5000](http://localhost:5000)
+
+---
+
+### Option B: Docker
 
 ```bash
-helm uninstall helloworld -n helloworld
+docker build -t helloworld:local .
+docker run -p 5000:5000 helloworld:local
+```
+
+---
+
+### Option C: Local Kubernetes with Minikube
+
+```bash
+minikube start
+eval $(minikube docker-env)
+docker build -t helloworld:local .
+kubectl apply -f k8s/
+minikube service helloworld-service
+```
+
+---
+
+## 🧹 7. Cleanup
+
+```bash
+helm uninstall helloworld
 kubectl delete namespace helloworld
 ```
 
@@ -172,9 +188,9 @@ kubectl delete namespace helloworld
 
 ## 📌 Notes
 
-- `Standard_B2s` is the minimum VM size allowed for system node pools in AKS.
-- Avoid using hardcoded secrets in production—use Azure Key Vault or secret managers.
-- Consider locking down public access to MySQL with VNet rules.
+- Use Azure Key Vault for managing secrets in production.
+- AKS minimum node VM size is `Standard_B2s`.
+- MySQL public access should be restricted in production environments.
 
 ---
 
