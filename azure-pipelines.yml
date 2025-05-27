@@ -9,7 +9,7 @@ variables:
   imageRepository: 'leducnguyen21/helloword'  # Your Docker Hub image
   tag: '$(Build.BuildId)'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  aksServiceConnection: 'aks-service-connection'  
+  aksServiceConnection: 'aks-service-connection2'  
   aksCluster: HelloWorld'  
   aksResourceGroup: 'HelloWorld'  
 
