@@ -9,21 +9,59 @@ resources:
 - repo: self
 
 variables:
+  dockerRegistryServiceConnection: 'dockerhub-service-connection'  # Docker Hub service connection
+  imageRepository: 'leducnguyen21/helloword'  # Your Docker Hub image
   tag: '$(Build.BuildId)'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  aksServiceConnection: 'aks-service-connection'  
+  aksCluster: HelloWorld'  
+  aksResourceGroup: 'HelloWorld'  
 
 stages:
-- stage: Build
-  displayName: Build image
+- stage: BuildAndPush
+  displayName: Build and Push Docker Image
   jobs:
-  - job: Build
-    displayName: Build
+  - job: DockerBuildPush
+    displayName: Build and Push Image
     pool:
       vmImage: ubuntu-latest
+
     steps:
     - task: Docker@2
-      displayName: Build an image
+      displayName: Build Docker Image
       inputs:
         command: build
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+        dockerfile: '$(dockerfilePath)'
+        repository: $(imageRepository)
         tags: |
           $(tag)
+
+    - task: Docker@2
+      displayName: Push Docker Image
+      inputs:
+        command: push
+        repository: $(imageRepository)
+        tags: |
+          $(tag)
+        containerRegistry: $(dockerRegistryServiceConnection)
+
+- stage: Deploy
+  displayName: Deploy to AKS using Helm
+  dependsOn: BuildAndPush
+  jobs:
+  - job: HelmDeploy
+    displayName: Helm Install
+    pool:
+      vmImage: ubuntu-latest
+
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: $(aksServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          az aks get-credentials --name $(aksCluster) --resource-group $(aksResourceGroup) --overwrite-existing
+          helm upgrade --install helloworld ./helloworld-chart \
+            --set image.repository=$(imageRepository) \
+            --set image.tag=$(tag)
