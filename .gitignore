@@ -1,0 +1,59 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Environment variables
+.env
+.env.*
+
+# macOS system files
+.DS_Store
+
+# Docker files
+*.log
+docker-compose.override.yml
+
+# Kubernetes and Helm
+*.tgz
+charts/
+release.yaml
+values.yaml
+
+# VSCode and IDEs
+.vscode/
+.idea/
+
+# Python package files
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Pipenv / Poetry
+Pipfile.lock
+poetry.lock
+
+# PyInstaller
+*.spec
+
+# Test artifacts
+htmlcov/
+coverage.*
+.cache
+.pytest_cache/
+
+# Azure pipeline artifacts
+*.azure-pipelines/
+
+# Misc
+*.bak
+*.swp
+*.tmp

@@ -1,0 +1,59 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  - group: helloworld-vars  # Define DB_PASSWORD here securely
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildAndPush
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - task: Docker@2
+      displayName: 'Build and Push Docker image'
+      inputs:
+        containerRegistry: 'DockerHubConnection'
+        repository: 'leducnguyen21/helloworld-image'
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          latest
+
+- stage: Deploy
+  dependsOn: Build
+  jobs:
+  - job: HelmDeploy
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - task: HelmInstaller@1
+      inputs:
+        helmVersionToInstall: 'latest'
+
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'AzureServiceConnection'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az aks get-credentials --name HelloWorldAKS --resource-group HelloWorldRG
+          helm upgrade --install helloworld ./helm/helloworld \
+            --set image.tag=latest \
+            --set env.DB_PASSWORD=$(DB_PASSWORD)
+
+    - script: |
+        echo "Waiting for service to be ready..."
+        sleep 30
+        EXTERNAL_IP=$(kubectl get svc helloworld -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        echo "External IP: $EXTERNAL_IP"
+        echo "Running health check..."
+        curl http://$EXTERNAL_IP/health
+      displayName: 'Health check'

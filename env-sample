@@ -1,0 +1,4 @@
+DB_HOST=helloworddev123.mysql.database.azure.com
+DB_NAME=helloword
+DB_USER=helloworld
+DB_PASSWORD=dDWioih2d54wqwq3
