@@ -49,7 +49,7 @@ def get_users():
 
 @app.route('/health')
 def health_check():
-    return jsonify({"status": "healthy"}), 200
+    return jsonify({"status": "Application is healthy"}), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
