@@ -6,7 +6,7 @@ resources:
 
 variables:
   dockerRegistryServiceConnection: 'dockerhub-service-connection'  # Docker Hub service connection
-  imageRepository: 'leducnguyen21/helloword'  # Your Docker Hub image
+  imageRepository: 'leducnguyen21/helloworld'  # Your Docker Hub image
   tag: '$(Build.BuildId)'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   aksServiceConnection: 'aks-service-connection2'  
